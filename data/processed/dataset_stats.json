@@ -1,0 +1,27 @@
+{
+  "total_samples": 276,
+  "train_samples": 193,
+  "val_samples": 41,
+  "test_samples": 42,
+  "scam_count": 177,
+  "benign_count": 99,
+  "categories": {
+    "other": 66,
+    "banking": 33,
+    "upi": 29,
+    "kyc": 27,
+    "otp": 19,
+    "electricity": 18,
+    "phishing": 16,
+    "job": 14,
+    "loan": 13,
+    "investment": 11,
+    "lottery": 10,
+    "digital_arrest": 10,
+    "impersonation": 10
+  },
+  "languages": {
+    "english": 222,
+    "hinglish": 54
+  }
+}

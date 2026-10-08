@@ -1,0 +1,42 @@
+text,label,scam_type,language
+Good morning! Please find the notes from yesterday's retrospective meeting attached.,benign,other,english
+Can we reschedule our 1:1 call to 4:30 PM? Have a production incident to review.,benign,other,english
+BHIM UPI alert: Suspicious activity observed. Validate your UPI ID and PIN at http://bhim-upi-security.me to prevent unauthorized debit.,scam,upi,english
+IMPORTANT ALERT: TRAI / Telecom Department Alert: All SIM cards registered on your Aadhaar will be disconnected within 2 hours due to illegal harassment complaints. Connect to Supreme Court digital hearing via Skype now. Action required within 1 hour.,scam,digital_arrest,english
+"IMPORTANT ALERT: Bhai emergency ho gayi hai, accident mein hospital mein admit hoon. Turant ₹8,000 is UPI pe send kar: rahul.care99@okicici. Sham ko wapas kar dunga. Action required within 1 hour.",scam,impersonation,hinglish
+IMPORTANT ALERT: URGENT: Your HDFC Bank account KYC expired today. Submit PAN & Aadhaar details at http://hdfc-netverify.live to avoid account freeze within 24 hours. Action required within 1 hour.,scam,kyc,english
+Your Uber ride OTP is 3910. Share this with driver Sanjay once you board the vehicle.,benign,other,english
+591024 is the one time password (OTP) for your Zomato order payment of ₹350. Do not disclose to anyone.,benign,banking,english
+Sir aapka electricity meter update ho raha hai. Abhi jo OTP aaya hai wo share karein taaki power supply uninterrupted rahe.,scam,otp,hinglish
+"Dear customer, thank you for visiting Reliance Digital. Your invoice has been emailed to your registered address.",benign,other,english
+"Amazon Pay reward: You have a pending cashback of ₹3,000. Open PhonePe/GPay and enter your UPI PIN to receive money in your account.",scam,upi,english
+IMPORTANT ALERT: Urgent Loan Notification: Emergency loan approved for your Aadhaar card. Transfer stamp duty fee ₹850 via UPI to activate disbursement. Action required within 1 hour.,scam,loan,english
+India Post: Your package #IN98129 cannot be delivered due to incomplete street address. Update details and pay ₹5 re-delivery fee at http://indiapost-parcel-tracking.vip,scam,phishing,english
+"IMPORTANT ALERT: Hey dad, I lost my phone and my wallet while traveling in Mumbai. I am using my friend's phone. Please send ₹12,000 urgently on this UPI ID: friend.emergency@upi. Urgent emergency please don't call. Action required within 1 hour.",scam,impersonation,english
+"IMPORTANT ALERT: Paytm Refund: Your failed transaction of ₹1,850 has been reversed. Tap link to approve UPI mandate and credit amount: http://paytm-reversal.live Action required within 1 hour.",scam,upi,english
+"Update: Hey, I transferred my share of ₹650 for yesterday's dinner via UPI. Please check.",benign,upi,english
+"682910 is your OTP for logging into HDFC NetBanking. Valid for 3 minutes. Do not share this OTP with anyone, including bank staff.",benign,banking,english
+IMPORTANT ALERT: BSES Rajdhani notice: Urgent power disconnection order issued for meter #29104. Pay ₹10 bill verification fee via link http://bses-bill-portal.in to clear dues. Action required within 1 hour.,scam,electricity,english
+"IMPORTANT ALERT: Bhai maine aapko ₹5,000 galti se bhej diye hain. Please return kar do. Is collect request ko approve karke apna UPI PIN daal do. Action required within 1 hour.",scam,upi,hinglish
+Gas cylinder booking #82910 confirmed. Delivery expected within 48 hours. Cash on delivery amount: ₹830.,benign,other,english
+"Dear customer, your Paytm wallet KYC is incomplete. Your wallet balance ₹4,500 will be frozen. Call helpline 9823419821 or visit http://paytm-wallet-kyc.in",scam,kyc,english
+"IMPORTANT ALERT: Aapke account se bina permission ke ₹12,000 kat gaye hain? Turant hamare customer support number 9311029481 par call karein refund lene ke liye. Action required within 1 hour.",scam,banking,hinglish
+"Dear SBI Customer, your YONO account has been suspended due to pending KYC. Click http://sbi-kyc-update.xyz to verify immediately or account will be blocked permanently.",scam,kyc,english
+"Your SBI account XX3829 debited by INR 350.00 on 08-Oct-26 at ZOMATO. Avail Bal: INR 18,450.20. If not done by you, SMS BLOCK to 567676.",benign,banking,english
+IMPORTANT ALERT: Aapka bank KYC expire ho gaya hai. Abhi update kare http://sbi-quick-kyc.biz nahi to kal se UPI kaam nahi karega. Action required within 1 hour.,scam,kyc,hinglish
+"Update: Papa, medicines order kar di hain Tata 1mg se, kal dopahar tak deliver ho jayengi.",benign,other,hinglish
+"Dear employee, PF passbook for the current financial year has been updated on the EPFO portal.",benign,other,english
+"Dear Consumer, your electricity power supply will be disconnected tonight at 9:30 PM from the power sub-station because your previous month bill was not updated. Immediately contact Electricity Officer Sharma at 9876543210.",scam,electricity,english
+"IMPORTANT ALERT: Indian Army Subedar posting transfer: Selling my Royal Enfield Bullet 350cc (2022 model) for only ₹60,000 as I got transfer to Leh. Pay gate pass fee ₹5,000 for army cantonment vehicle release. Action required within 1 hour.",scam,impersonation,english
+591024 is the one time password (OTP) for your Zomato order payment of ₹199. Do not disclose to anyone.,benign,banking,english
+591024 is the one time password (OTP) for your Swiggy order payment of ₹620. Do not disclose to anyone.,benign,banking,english
+"You have received a cashback refund of ₹2,500 from PhonePe. To receive the money directly into your bank, click http://phonepe-refund-claim.in and enter your UPI PIN.",scam,upi,english
+Update: Your monthly mobile postpaid bill of ₹706.82 for 9811223344 is due on 21-Oct.,benign,other,english
+Update: UPI transaction of ₹120 to Chai Point is completed. UPI Ref ID: 391029103910.,benign,upi,english
+"Canara Bank customer notice: Your reward points worth ₹7,850 are expiring tonight. Redeem points into cash by calling support executive at +91-7654321098.",scam,banking,english
+"IMPORTANT ALERT: Dear Consumer, your electricity power supply will be disconnected tonight at 9:30 PM from the power sub-station because your previous month bill was not updated. Immediately contact Electricity Officer Sharma at 9876543210. Action required within 1 hour.",scam,electricity,english
+BSES Rajdhani notice: Urgent power disconnection order issued for meter #29104. Pay ₹10 bill verification fee via link http://bses-bill-portal.in to clear dues.,scam,electricity,english
+"IMPORTANT ALERT: Dear HDFC customer, for any transaction dispute or refund call our 24x7 toll free customer care at +91-8921829102 immediately. Action required within 1 hour.",scam,banking,english
+IMPORTANT ALERT: Airtel Payments Bank: Your account has been temporarily disabled. Upload KYC documents via http://airtel-bank-verify.info to restore access. Action required within 1 hour.,scam,kyc,english
+"IMPORTANT ALERT: Hello, I am Amit, CEO of your company. I am currently in a confidential client meeting and cannot take calls. Please buy 5 Apple App Store Gift cards worth ₹10,000 each and email the voucher codes to me right away. Action required within 1 hour.",scam,impersonation,english
+"Congratulations! You are the grand winner of ₹10,00,000 in Car Lottery. Transfer government GST amount ₹12,000 to release prize money.",scam,lottery,english

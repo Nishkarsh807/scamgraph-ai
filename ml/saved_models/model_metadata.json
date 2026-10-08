@@ -1,0 +1,45 @@
+{
+  "model_architecture": "TF-IDF (Word 1-2 + Char 2-5) + Calibrated Logistic Regression",
+  "multilingual_support": "Indian English & Hinglish",
+  "dataset_split": "70% Train, 15% Validation, 15% Test",
+  "binary_metrics": {
+    "val_accuracy": 1.0,
+    "val_precision": 1.0,
+    "val_recall": 1.0,
+    "val_f1": 1.0
+  },
+  "category_metrics": {
+    "val_accuracy": 0.8780487804878049,
+    "val_weighted_f1": 0.8579945799457994,
+    "classes": [
+      "banking",
+      "digital_arrest",
+      "electricity",
+      "impersonation",
+      "investment",
+      "job",
+      "kyc",
+      "loan",
+      "lottery",
+      "other",
+      "otp",
+      "phishing",
+      "upi"
+    ]
+  },
+  "supported_categories": [
+    "kyc",
+    "upi",
+    "otp",
+    "phishing",
+    "banking",
+    "job",
+    "loan",
+    "lottery",
+    "electricity",
+    "investment",
+    "digital_arrest",
+    "impersonation",
+    "other"
+  ]
+}
