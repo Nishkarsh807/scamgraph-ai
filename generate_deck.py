@@ -1,486 +1,885 @@
 """
-ScamGraph AI - Hackathon Pitch Deck Generator
-Creates a professional, dark-themed 12-slide PowerPoint presentation (.pptx)
-tailored for Track 2 (AI-Driven Scam Pattern Recognition).
+ScamGraph AI - Enhanced Visual 15-Slide Hackathon Pitch Deck Generator
+Builds a rich PowerPoint presentation (.pptx) featuring:
+- Visual Architecture Flowchart Shapes
+- Structured Comparison & Workflow Content Tables
+- Step-by-Step Playbook Deep-Dives (KYC, UPI, Digital Arrest, Electricity)
+- Embedded Confusion Matrix Image (ml/reports/confusion_matrix.png)
+- Visual Scam Graph Node-Link Diagram
+- KPI Metric Cards & Partial-Match Formula Breakdown
 """
 
 import os
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 
-def create_deck():
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CM_IMAGE_PATH = os.path.join(BASE_DIR, "ml", "reports", "confusion_matrix.png")
+OUTPUT_PPTX = os.path.join(BASE_DIR, "ScamGraph_AI_Hackathon_Pitch.pptx")
+
+# Color Palette (Modern Dark Security UI)
+BG_DARK = RGBColor(11, 17, 32)         # #0B1120
+CARD_BG = RGBColor(19, 28, 49)         # #131C31
+CARD_ALT = RGBColor(15, 23, 42)        # #0F172A
+EMERALD = RGBColor(16, 185, 129)       # #10B981
+DARK_EMERALD = RGBColor(6, 78, 59)     # #064E3B
+CYAN = RGBColor(56, 189, 248)          # #38BDF8
+AMBER = RGBColor(245, 158, 11)         # #F59E0B
+ROSE = RGBColor(244, 63, 94)           # #F43F5E
+DARK_ROSE = RGBColor(76, 5, 25)        # #4C0519
+PURPLE = RGBColor(168, 85, 247)        # #A855F7
+WHITE = RGBColor(255, 255, 255)
+SLATE_LIGHT = RGBColor(226, 232, 240)
+SLATE_MUTED = RGBColor(148, 163, 184)
+BORDER_SLATE = RGBColor(30, 41, 59)
+
+
+def set_slide_bg(slide, prs):
+    bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, prs.slide_width, prs.slide_height)
+    bg.fill.solid()
+    bg.fill.fore_color.rgb = BG_DARK
+    bg.line.fill.background()
+    # Subtle top accent bar
+    bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, prs.slide_width, Inches(0.06))
+    bar.fill.solid()
+    bar.fill.fore_color.rgb = EMERALD
+    bar.line.fill.background()
+
+
+def add_slide_header(slide, title_text, subtitle_text="SCAMGRAPH AI • TRACK 2: AI-DRIVEN SCAM PATTERN RECOGNITION", slide_num=None):
+    # Tagline pill
+    cat_box = slide.shapes.add_textbox(Inches(0.6), Inches(0.25), Inches(10.5), Inches(0.35))
+    tf_cat = cat_box.text_frame
+    p_cat = tf_cat.paragraphs[0]
+    p_cat.text = subtitle_text.upper()
+    p_cat.font.size = Pt(10)
+    p_cat.font.bold = True
+    p_cat.font.color.rgb = EMERALD
+
+    # Slide Number badge
+    if slide_num:
+        num_box = slide.shapes.add_textbox(Inches(11.8), Inches(0.25), Inches(1.0), Inches(0.35))
+        tf_num = num_box.text_frame
+        p_num = tf_num.paragraphs[0]
+        p_num.text = f"{slide_num:02d} / 15"
+        p_num.font.size = Pt(10)
+        p_num.font.bold = True
+        p_num.font.color.rgb = SLATE_MUTED
+        p_num.alignment = PP_ALIGN.RIGHT
+
+    # Main Title
+    title_box = slide.shapes.add_textbox(Inches(0.6), Inches(0.55), Inches(12.0), Inches(0.55))
+    tf_t = title_box.text_frame
+    tf_t.word_wrap = True
+    p_t = tf_t.paragraphs[0]
+    p_t.text = title_text
+    p_t.font.size = Pt(24)
+    p_t.font.bold = True
+    p_t.font.color.rgb = WHITE
+
+
+def add_box_card(slide, left, top, width, height, title="", border_color=BORDER_SLATE, fill_color=CARD_BG, title_color=CYAN):
+    shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = fill_color
+    shape.line.color.rgb = border_color
+    shape.line.width = Pt(1.5)
+
+    tb = slide.shapes.add_textbox(left + Inches(0.18), top + Inches(0.15), width - Inches(0.36), height - Inches(0.3))
+    tf = tb.text_frame
+    tf.word_wrap = True
+    if title:
+        p = tf.paragraphs[0]
+        p.text = title
+        p.font.size = Pt(14)
+        p.font.bold = True
+        p.font.color.rgb = title_color
+    return tf
+
+
+def add_bullet(tf, bold_prefix, text, size=11, color=SLATE_LIGHT, prefix_color=WHITE, space_before=6):
+    p = tf.add_paragraph()
+    p.space_before = Pt(space_before)
+    if bold_prefix:
+        run_b = p.add_run()
+        run_b.text = bold_prefix + " "
+        run_b.font.bold = True
+        run_b.font.size = Pt(size)
+        run_b.font.color.rgb = prefix_color
+    run_t = p.add_run()
+    run_t.text = text
+    run_t.font.size = Pt(size)
+    run_t.font.color.rgb = color
+
+
+def style_table_cell(cell, text, font_size=10, bold=False, text_color=WHITE, bg_color=CARD_BG, align=PP_ALIGN.LEFT):
+    cell.fill.solid()
+    cell.fill.fore_color.rgb = bg_color
+    cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+    tf = cell.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = text
+    p.font.size = Pt(font_size)
+    p.font.bold = bold
+    p.font.color.rgb = text_color
+    p.alignment = align
+
+
+def build_presentation():
     prs = Presentation()
-    # 16:9 widescreen dimensions
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
+    blank = prs.slide_layouts[6]
 
-    # Theme Palette (Modern Cybersecurity)
-    BG_COLOR = RGBColor(11, 17, 32)        # Dark Slate Navy #0B1120
-    CARD_BG = RGBColor(19, 27, 46)        # Card Navy #131B2E
-    ACCENT_GREEN = RGBColor(16, 185, 129)  # Emerald #10B981
-    ACCENT_CYAN = RGBColor(56, 189, 248)   # Cyan #38BDF8
-    ACCENT_RED = RGBColor(244, 63, 94)     # Rose #F43F5E
-    TEXT_WHITE = RGBColor(255, 255, 255)   # White
-    TEXT_MUTED = RGBColor(148, 163, 184)   # Slate Muted #94A3B8
-    BORDER_COLOR = RGBColor(30, 41, 59)    # Slate Border #1E293B
+    # =========================================================================
+    # SLIDE 1: COVER SLIDE
+    # =========================================================================
+    s1 = prs.slides.add_slide(blank)
+    set_slide_bg(s1, prs)
 
-    blank_layout = prs.slide_layouts[6]
-
-    def add_slide_background(slide):
-        bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, prs.slide_width, prs.slide_height)
-        bg.fill.solid()
-        bg.fill.fore_color.rgb = BG_COLOR
-        bg.line.fill.background()
-        return bg
-
-    def add_header(slide, title_text, category_text="SCAMGRAPH AI • TRACK 2"):
-        # Category Pill
-        cat_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.4), Inches(11.5), Inches(0.4))
-        tf_cat = cat_box.text_frame
-        tf_cat.word_wrap = True
-        p_cat = tf_cat.paragraphs[0]
-        p_cat.text = category_text.upper()
-        p_cat.font.size = Pt(11)
-        p_cat.font.bold = True
-        p_cat.font.color.rgb = ACCENT_GREEN
-
-        # Title
-        title_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.75), Inches(11.5), Inches(0.7))
-        tf_t = title_box.text_frame
-        tf_t.word_wrap = True
-        p_t = tf_t.paragraphs[0]
-        p_t.text = title_text
-        p_t.font.size = Pt(26)
-        p_t.font.bold = True
-        p_t.font.color.rgb = TEXT_WHITE
-
-    def add_card(slide, left, top, width, height, title, subtitle="", border_color=BORDER_COLOR):
-        card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
-        card.fill.solid()
-        card.fill.fore_color.rgb = CARD_BG
-        card.line.color.rgb = border_color
-        card.line.width = Pt(1.5)
-
-        tb = slide.shapes.add_textbox(left + Inches(0.2), top + Inches(0.2), width - Inches(0.4), height - Inches(0.4))
-        tf = tb.text_frame
-        tf.word_wrap = True
-        
-        if title:
-            p = tf.paragraphs[0]
-            p.text = title
-            p.font.size = Pt(16)
-            p.font.bold = True
-            p.font.color.rgb = ACCENT_CYAN
-
-        return tf
-
-    # ==========================================
-    # SLIDE 1: Title & Hero
-    # ==========================================
-    slide1 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide1)
-
-    # Center Hero
-    h_box = slide1.shapes.add_textbox(Inches(1.0), Inches(1.5), Inches(11.3), Inches(4.5))
-    tf1 = h_box.text_frame
-    tf1.word_wrap = True
-
-    p_badge = tf1.paragraphs[0]
-    p_badge.text = "TRACK 2: AI-DRIVEN SCAM PATTERN RECOGNITION"
-    p_badge.font.size = Pt(13)
-    p_badge.font.bold = True
-    p_badge.font.color.rgb = ACCENT_GREEN
-    p_badge.alignment = PP_ALIGN.CENTER
-
-    p_main = tf1.add_paragraph()
-    p_main.text = "ScamGraph AI"
-    p_main.font.size = Pt(56)
-    p_main.font.bold = True
-    p_main.font.color.rgb = TEXT_WHITE
-    p_main.alignment = PP_ALIGN.CENTER
-
-    p_tagline = tf1.add_paragraph()
-    p_tagline.text = "From suspicious messages to complete scam workflows."
-    p_tagline.font.size = Pt(22)
-    p_tagline.font.bold = True
-    p_tagline.font.color.rgb = ACCENT_CYAN
-    p_tagline.alignment = PP_ALIGN.CENTER
-
-    p_sub = tf1.add_paragraph()
-    p_sub.text = "\nDetect scam messages • Understand attack workflows • Stop fraud before money moves"
-    p_sub.font.size = Pt(15)
-    p_sub.font.color.rgb = TEXT_MUTED
-    p_sub.alignment = PP_ALIGN.CENTER
-
-    p_team = tf1.add_paragraph()
-    p_team.text = "\nPresented by: Nishkarsh Singh | nishkarsh148@gmail.com"
-    p_team.font.size = Pt(13)
-    p_team.font.color.rgb = TEXT_MUTED
-    p_team.alignment = PP_ALIGN.CENTER
-
-    # ==========================================
-    # SLIDE 2: The Problem - The Blindspot in Fraud Detection
-    # ==========================================
-    slide2 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide2)
-    add_header(slide2, "The Problem: Fraudsters Run Workflows, Not Just Spam")
-
-    c1 = add_card(slide2, Inches(0.8), Inches(1.8), Inches(5.6), Inches(4.8), "The Multi-Stage Scam Reality", border_color=ACCENT_RED)
-    p = c1.add_paragraph()
-    p.text = "Modern Indian digital payment scams (UPI, KYC, WhatsApp, Banking, Digital Arrests) are NOT single, isolated messages.\n"
-    p.font.size = Pt(13)
-    p.font.color.rgb = TEXT_MUTED
-
-    p2 = c1.add_paragraph()
-    p2.text = "They follow an engineered multi-step journey:\n" \
-              "1. Unknown Contact / Urgent Threat\n" \
-              "2. Account Suspension Notice (KYC/Bill)\n" \
-              "3. Phishing Link / Malicious APK\n" \
-              "4. Fake Banking / Credential Harvesting\n" \
-              "5. OTP Forwarding / UPI Mandate Request\n" \
-              "6. Irreversible Financial Drain"
-    p2.font.size = Pt(12)
-    p2.font.color.rgb = TEXT_WHITE
-
-    c2 = add_card(slide2, Inches(6.8), Inches(1.8), Inches(5.6), Inches(4.8), "Why Legacy Solutions Fail", border_color=BORDER_COLOR)
-    p = c2.add_paragraph()
-    p.text = "Current SMS and email filters behave like simplistic binary spam classifiers.\n"
-    p.font.size = Pt(13)
-    p.font.color.rgb = TEXT_MUTED
-
-    p3 = c2.add_paragraph()
-    p3.text = "• Zero Contextual Memory: Treats each interaction as an isolated point in time.\n\n" \
-              "• High Alert Fatigue: Alerts users on every benign promo or misses sophisticated attacks.\n\n" \
-              "• Reactive, Not Proactive: Flags fraud only after payment requests have triggered.\n\n" \
-              "• Black-Box Predictions: Returns vague scores without evidence or actionable safety advice."
-    p3.font.size = Pt(12)
-    p3.font.color.rgb = TEXT_WHITE
-
-    # ==========================================
-    # SLIDE 3: Core Product Principle & Solution
-    # ==========================================
-    slide3 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide3)
-    add_header(slide3, "Core Innovation: Scam Workflow Intelligence")
-
-    # Banner Card
-    b_card = slide3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.6), Inches(11.7), Inches(1.5))
-    b_card.fill.solid()
-    b_card.fill.fore_color.rgb = CARD_BG
-    b_card.line.color.rgb = ACCENT_GREEN
-    b_card.line.width = Pt(2)
-    tf_b = b_card.text_frame
-    tf_b.word_wrap = True
-    p = tf_b.paragraphs[0]
-    p.text = "THE CORE PRODUCT PRINCIPLE"
+    # Track Pill Shape
+    pill = s1.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(3.8), Inches(1.2), Inches(5.7), Inches(0.45))
+    pill.fill.solid()
+    pill.fill.fore_color.rgb = DARK_EMERALD
+    pill.line.color.rgb = EMERALD
+    tf_p = pill.text_frame
+    p = tf_p.paragraphs[0]
+    p.text = "TRACK 2 • AI-DRIVEN SCAM PATTERN RECOGNITION"
     p.font.size = Pt(11)
     p.font.bold = True
-    p.font.color.rgb = ACCENT_GREEN
-    p2 = tf_b.add_paragraph()
-    p2.text = "Do not ask: \"Is this message spam?\"\n" \
-              "Ask: \"What scam workflow is unfolding, how risky is it, what evidence supports that conclusion, and what should the user do next?\""
-    p2.font.size = Pt(15)
+    p.font.color.rgb = EMERALD
+    p.alignment = PP_ALIGN.CENTER
+
+    # Hero Title
+    hero_box = s1.shapes.add_textbox(Inches(1.0), Inches(1.85), Inches(11.3), Inches(2.6))
+    tf_h = hero_box.text_frame
+    tf_h.word_wrap = True
+    p1 = tf_h.paragraphs[0]
+    p1.text = "ScamGraph AI"
+    p1.font.size = Pt(60)
+    p1.font.bold = True
+    p1.font.color.rgb = WHITE
+    p1.alignment = PP_ALIGN.CENTER
+
+    p2 = tf_h.add_paragraph()
+    p2.text = "From suspicious messages to complete scam workflows."
+    p2.font.size = Pt(22)
     p2.font.bold = True
-    p2.font.color.rgb = TEXT_WHITE
+    p2.font.color.rgb = CYAN
+    p2.alignment = PP_ALIGN.CENTER
 
-    # 3 Solution pillars
-    p1 = add_card(slide3, Inches(0.8), Inches(3.4), Inches(3.7), Inches(3.5), "1. Workflow Playbooks")
-    p = p1.add_paragraph()
-    p.text = "State machine tracking 8 canonical attack playbooks with partial sequence matching and next-move threat prediction."
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_MUTED
+    p3 = tf_h.add_paragraph()
+    p3.text = "\nDetect Multi-Stage Scam Workflows  •  Fingerprint Scam DNA  •  Stop Fraud Before Money Moves"
+    p3.font.size = Pt(13)
+    p3.font.color.rgb = SLATE_MUTED
+    p3.alignment = PP_ALIGN.CENTER
 
-    p2 = add_card(slide3, Inches(4.8), Inches(3.4), Inches(3.7), Inches(3.5), "2. Scam DNA Vectors")
-    p = p2.add_paragraph()
-    p.text = "Dense semantic vector fingerprinting (#UPI-KYC-042) grouping morphing text variants into single persistent campaigns."
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_MUTED
-
-    p3 = add_card(slide3, Inches(8.8), Inches(3.4), Inches(3.7), Inches(3.5), "3. Explainability & Action")
-    p = p3.add_paragraph()
-    p.text = "Plain-English evidence points, zero alert fatigue deduplication, and precise preventive guidance before money moves."
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_MUTED
-
-    # ==========================================
-    # SLIDE 4: System Architecture
-    # ==========================================
-    slide4 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide4)
-    add_header(slide4, "End-to-End System Architecture")
-
-    arch_card = add_card(slide4, Inches(0.8), Inches(1.6), Inches(11.7), Inches(5.2), "Multi-Engine Pipeline Architecture")
-    p = arch_card.add_paragraph()
-    p.text = "ScamGraph AI combines multilingual NLP, deterministic signals, URL heuristics, and state machines into a unified risk score:"
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_MUTED
-
-    # Pipeline stages list
-    stages = [
-        ("Input Processing & Entity Preservation", "Extracts & preserves URLs, phone numbers, UPI IDs, currency amounts, and language (English/Hinglish)."),
-        ("Dual-Layer Machine Learning", "Trained on Indian scam communications with calibrated binary fraud and 13-class taxonomy classification."),
-        ("Rule & Signal Engine", "Deterministic extraction of urgency, threats, OTP requests, KYC demands, and impersonation cues."),
-        ("URL Threat & Typosquatting Analyzer", "Inspects high-abuse TLDs (.xyz, .top), brand typosquatting (sbi-kyc, hdfc-netverify), and insecure HTTP."),
-        ("Workflow & Playbook State Machine", "Calculates sequence alignment across 8 fraud playbooks and identifies current attack stage."),
-        ("Scam DNA & DBSCAN Clustering", "Vector similarity matches known campaigns; DBSCAN flags emerging high-velocity clusters."),
-        ("Calibrated Composite Risk Engine", "Formula: 0.45*ML + 0.25*Rule + 0.15*URL + 0.15*Workflow (Normalized 0-100)."),
-        ("Interactive Scam Graph", "React Flow topology graph mapping actors, domains, tokens, and campaign DNA.")
+    # 4 Bottom Metric Cards on Cover
+    cover_kpis = [
+        ("100% Recall", "Zero Missed Scams on Test Set", EMERALD),
+        ("8 Playbooks", "Multi-Event Workflow Tracking", CYAN),
+        ("Scam DNA", "Semantic Vector Fingerprinting", PURPLE),
+        ("React Flow", "Interactive Scam Graph Topology", AMBER)
     ]
-    for s_title, s_desc in stages:
-        ps = arch_card.add_paragraph()
-        ps.text = f"• {s_title}: {s_desc}"
-        ps.font.size = Pt(11)
-        ps.font.color.rgb = TEXT_WHITE
+    for i, (k_val, k_sub, k_col) in enumerate(cover_kpis):
+        left = Inches(1.0 + i * 2.9)
+        c = s1.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, Inches(4.8), Inches(2.7), Inches(1.3))
+        c.fill.solid()
+        c.fill.fore_color.rgb = CARD_BG
+        c.line.color.rgb = k_col
+        c.line.width = Pt(1.5)
+        tf_c = c.text_frame
+        tf_c.word_wrap = True
+        pk1 = tf_c.paragraphs[0]
+        pk1.text = k_val
+        pk1.font.size = Pt(20)
+        pk1.font.bold = True
+        pk1.font.color.rgb = k_col
+        pk1.alignment = PP_ALIGN.CENTER
+        pk2 = tf_c.add_paragraph()
+        pk2.text = k_sub
+        pk2.font.size = Pt(10)
+        pk2.font.color.rgb = SLATE_LIGHT
+        pk2.alignment = PP_ALIGN.CENTER
 
-    # ==========================================
-    # SLIDE 5: Machine Learning & Multilingual Pipeline
-    # ==========================================
-    slide5 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide5)
-    add_header(slide5, "Machine Learning: Multilingual MuRIL & Hinglish Pipeline")
+    # Presenter Footer
+    foot = s1.shapes.add_textbox(Inches(1.0), Inches(6.45), Inches(11.3), Inches(0.5))
+    tf_f = foot.text_frame
+    pf = tf_f.paragraphs[0]
+    pf.text = "Author: Nishkarsh Singh  |  GitHub: github.com/Nishkarsh807/scamgraph-ai"
+    pf.font.size = Pt(12)
+    pf.font.bold = True
+    pf.font.color.rgb = SLATE_MUTED
+    pf.alignment = PP_ALIGN.CENTER
 
-    ml_c1 = add_card(slide5, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2), "Multilingual Model Architecture")
-    p = ml_c1.add_paragraph()
-    p.text = "Engineered specifically for Indian English and Romanized Hindi (Hinglish) communications:\n" \
-             "• MuRIL (Multilingual Representations for Indian Languages): PyTorch transformer pipeline fine-tuned for Indian fraud taxonomy.\n\n" \
-             "• Dual Feature Union: Word n-grams (1, 2) + Character subword n-grams (2, 5) with sublinear term-frequency scaling.\n\n" \
-             "• Calibrated Probability: Sigmoid Platt Scaling ensures well-calibrated confidence scores without overconfidence.\n\n" \
-             "• Dual-Head Output:\n" \
-             "   - Head 1: Binary Fraud (BENIGN vs SCAM)\n" \
-             "   - Head 2: 13-Class Taxonomy (KYC, UPI, OTP, Phishing, Job, Loan, Electricity, etc.)"
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_WHITE
+    # =========================================================================
+    # SLIDE 2: THE PROBLEM STATEMENT
+    # =========================================================================
+    s2 = prs.slides.add_slide(blank)
+    set_slide_bg(s2, prs)
+    add_slide_header(s2, "The Problem: Fraudsters Execute Workflows, Not Single Texts", slide_num=2)
 
-    ml_c2 = add_card(slide5, Inches(6.8), Inches(1.6), Inches(5.6), Inches(5.2), "Evaluation Benchmarks (Held-out Test Split)", border_color=ACCENT_GREEN)
-    p = ml_c2.add_paragraph()
-    p.text = "Real evaluation metrics produced on the held-out 15% stratified test split (Zero fabricated claims):"
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_MUTED
+    tf_left = add_box_card(s2, Inches(0.6), Inches(1.3), Inches(5.9), Inches(4.1), "How a Real Scam Unfolds Across Channels", border_color=ROSE, title_color=ROSE)
+    add_bullet(tf_left, "Step 1 (SMS):", "'Dear customer, your SBI KYC expires today.' — Appears benign in isolation.", 11)
+    add_bullet(tf_left, "Step 2 (Link):", "'Update PAN immediately at http://sbi-kyc-update.xyz' — Phishing lure.", 11)
+    add_bullet(tf_left, "Step 3 (Web):", "Fake banking page harvests NetBanking username & password.", 11)
+    add_bullet(tf_left, "Step 4 (Call/WhatsApp):", "'Tell our executive the 6-digit OTP to unfreeze your account.'", 11)
+    add_bullet(tf_left, "Step 5 (UPI):", "'Approve ₹1 verification collect request' -> Drains ₹95,000.", 11, color=ROSE)
 
-    benchmarks = [
-        ("Fraud Recall (Primary Safety KPI)", "100.00%", "Zero missed scams"),
-        ("Precision", "96.43%", "Extremely low false positives"),
-        ("F1 Score", "98.18%", "Optimal harmonic balance"),
-        ("ROC-AUC", "1.0000", "Flawless class separation"),
-        ("Overall Accuracy", "97.62%", "High generalizability")
+    tf_right = add_box_card(s2, Inches(6.8), Inches(1.3), Inches(5.9), Inches(4.1), "Why Traditional Spam Classifiers Fail", border_color=BORDER_SLATE, title_color=CYAN)
+    add_bullet(tf_right, "1. Zero State Memory:", "Evaluates each SMS independently without linking previous messages.", 11)
+    add_bullet(tf_right, "2. High Alert Fatigue:", "Flags harmless marketing promos while missing subtle social engineering.", 11)
+    add_bullet(tf_right, "3. Hinglish Evasion:", "Fails on Romanized Hindi ('Aapka khata band ho jayega turant').", 11)
+    add_bullet(tf_right, "4. Black-Box Output:", "Shows 'Spam: 80%' without explaining why or what the user should do.", 11)
+    add_bullet(tf_right, "5. No Campaign Vision:", "Cannot connect 100 slightly reworded texts to one fraud ring.", 11)
+
+    # Bottom Visual Chain Flow
+    chain_steps = ["Unknown Sender", "KYC Expiry Threat", "Suspicious URL", "Credential Theft", "OTP Request", "UPI Account Drain"]
+    for idx, st in enumerate(chain_steps):
+        left = Inches(0.6 + idx * 2.05)
+        box = s2.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, Inches(5.75), Inches(1.75), Inches(0.95))
+        box.fill.solid()
+        box.fill.fore_color.rgb = DARK_ROSE if idx >= 3 else CARD_BG
+        box.line.color.rgb = ROSE if idx >= 3 else CYAN
+        tf_b = box.text_frame
+        tf_b.word_wrap = True
+        p = tf_b.paragraphs[0]
+        p.text = f"Event {idx+1}\n{st}"
+        p.font.size = Pt(10)
+        p.font.bold = True
+        p.font.color.rgb = WHITE
+        p.alignment = PP_ALIGN.CENTER
+
+        if idx < len(chain_steps) - 1:
+            arr = s2.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, left + Inches(1.8), Inches(6.1), Inches(0.2), Inches(0.25))
+            arr.fill.solid()
+            arr.fill.fore_color.rgb = EMERALD
+            arr.line.fill.background()
+
+    # =========================================================================
+    # SLIDE 3: CORE INNOVATION & PARADIGM SHIFT TABLE
+    # =========================================================================
+    s3 = prs.slides.add_slide(blank)
+    set_slide_bg(s3, prs)
+    add_slide_header(s3, "Core Innovation: The ScamGraph AI Paradigm Shift", slide_num=3)
+
+    # Principle Banner
+    prin = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(1.25), Inches(12.1), Inches(1.15))
+    prin.fill.solid()
+    prin.fill.fore_color.rgb = DARK_EMERALD
+    prin.line.color.rgb = EMERALD
+    prin.line.width = Pt(2)
+    tf_pr = prin.text_frame
+    tf_pr.word_wrap = True
+    p = tf_pr.paragraphs[0]
+    p.text = "CORE PRODUCT PRINCIPLE"
+    p.font.size = Pt(10)
+    p.font.bold = True
+    p.font.color.rgb = EMERALD
+    p2 = tf_pr.add_paragraph()
+    p2.text = "Do NOT ask: \"Is this message spam?\"   ➔   Ask: \"What scam workflow is unfolding, how risky is it, what evidence supports that conclusion, and what should the user do next?\""
+    p2.font.size = Pt(13)
+    p2.font.bold = True
+    p2.font.color.rgb = WHITE
+
+    # Comparison Table
+    rows, cols = 7, 3
+    table_shape = s3.shapes.add_table(rows, cols, Inches(0.6), Inches(2.6), Inches(12.1), Inches(4.4))
+    table = table_shape.table
+    table.columns[0].width = Inches(2.6)
+    table.columns[1].width = Inches(4.5)
+    table.columns[2].width = Inches(5.0)
+
+    headers = ["Capability", "Legacy Spam Classifiers", "ScamGraph AI Platform"]
+    for c_idx, h in enumerate(headers):
+        style_table_cell(table.cell(0, c_idx), h, font_size=11, bold=True, text_color=BG_DARK if c_idx==2 else WHITE, bg_color=EMERALD if c_idx==2 else BORDER_SLATE)
+
+    comp_data = [
+        ("Detection Scope", "Isolated single-message text classification", "Multi-event Scam Workflow State Machine (8 Playbooks)"),
+        ("Campaign Tracking", "None — treats every reworded SMS as new", "Scam DNA Semantic Vectors (#UPI-KYC-042)"),
+        ("Emerging Threats", "Static rule updates weeks after outbreak", "Unsupervised DBSCAN Clustering (+64% velocity alerts)"),
+        ("Language Support", "English keyword matching", "Multilingual MuRIL + Hinglish Subword N-grams"),
+        ("Alert Fatigue", "High false alarms on benign bank alerts", "Adaptive 4-Tier Intervention + Campaign Deduplication"),
+        ("Explainability", "Black-box probability score only", "Plain-English Evidence + Next Attacker Move + Action")
     ]
-    for b_name, b_val, b_note in benchmarks:
-        pb = ml_c2.add_paragraph()
-        pb.text = f"• {b_name}: {b_val} — {b_note}"
-        pb.font.size = Pt(12)
-        pb.font.bold = True
-        pb.font.color.rgb = ACCENT_GREEN
+    for r_idx, (cap, leg, sg) in enumerate(comp_data, start=1):
+        bg = CARD_BG if r_idx % 2 == 1 else CARD_ALT
+        style_table_cell(table.cell(r_idx, 0), cap, font_size=10, bold=True, text_color=CYAN, bg_color=bg)
+        style_table_cell(table.cell(r_idx, 1), leg, font_size=10, bold=False, text_color=SLATE_MUTED, bg_color=bg)
+        style_table_cell(table.cell(r_idx, 2), sg, font_size=10, bold=True, text_color=EMERALD, bg_color=bg)
 
-    # ==========================================
-    # SLIDE 6: Scam Workflow Intelligence & 8 Playbooks
-    # ==========================================
-    slide6 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide6)
-    add_header(slide6, "Scam Workflow Intelligence: 8 Attack Playbooks")
+    # =========================================================================
+    # SLIDE 4: VISUAL SYSTEM ARCHITECTURE DIAGRAM
+    # =========================================================================
+    s4 = prs.slides.add_slide(blank)
+    set_slide_bg(s4, prs)
+    add_slide_header(s4, "System Architecture: Multi-Engine Fraud Intelligence Pipeline", slide_num=4)
 
-    wf_card = add_card(slide6, Inches(0.8), Inches(1.6), Inches(11.7), Inches(5.2), "Recognizing Multi-Event State Progression")
-    p = wf_card.add_paragraph()
-    p.text = "Instead of evaluating messages in isolation, ScamGraph AI tracks progression against 8 canonical attack playbooks:"
+    # Draw visual layered architecture using shapes
+    # Layer 1: Input & Preprocessing
+    b_in = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(1.3), Inches(12.1), Inches(0.8))
+    b_in.fill.solid()
+    b_in.fill.fore_color.rgb = CARD_BG
+    b_in.line.color.rgb = CYAN
+    tf = b_in.text_frame
+    p = tf.paragraphs[0]
+    p.text = "1. INPUT & ENTITY PRESERVATION LAYER  —  SMS • WhatsApp • Email • UPI Request • URL • Call/Chat Transcript"
     p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_MUTED
+    p.font.bold = True
+    p.font.color.rgb = CYAN
+    p.alignment = PP_ALIGN.CENTER
+    p2 = tf.add_paragraph()
+    p2.text = "Preserves URLs, ₹ Amounts, Phone Numbers, UPI Handles, OTP Keywords & Detects English / Hinglish"
+    p2.font.size = Pt(10)
+    p2.font.color.rgb = SLATE_LIGHT
+    p2.alignment = PP_ALIGN.CENTER
 
-    playbooks = [
-        ("KYC Account Takeover", "KYC_WARNING → URGENCY → EXTERNAL_LINK → CREDENTIAL_REQUEST → OTP_REQUEST"),
-        ("UPI Collect & Refund Fraud", "PAYMENT_LURE → UPI_LINK → URGENCY → PIN_OR_OTP_REQUEST → FINANCIAL_DRAIN"),
-        ("Remote Support Scam", "BANK_SUPPORT_IMPERSONATION → REMOTE_ACCESS_REQUEST (AnyDesk) → CREDENTIAL_REQUEST"),
-        ("Job / Task Scam", "JOB_OFFER → INITIAL_REWARD → REGISTRATION_FEE → PAYMENT_REQUEST → EXTORTION"),
-        ("Electricity Bill Disconnection", "DISCONNECTION_THREAT → URGENCY → FAKE_OFFICER_CALL → PAYMENT_REQUEST"),
-        ("Law Enforcement Digital Arrest", "POLICE/CUSTOMS_IMPERSONATION → CONTRABAND_ACCUSATION → DIGITAL_ARREST → ESCROW_DEPOSIT"),
-        ("Advance-Fee Loan Fraud", "LOAN_OFFER → INSTANT_APPROVAL → PROCESSING_FEE_REQUEST → GHOSTING"),
-        ("KBC / Lucky Draw Prize", "LOTTERY_WIN_ANNOUNCEMENT → WHATSAPP_CONTACT → TAX_CLEARANCE_FEE → PAYMENT")
+    # Layer 2: 4 Parallel Intelligence Engines
+    engines = [
+        ("2A. NLP ML Engine", "MuRIL + Word/Char N-Grams\nBinary + 13-Class Taxonomy\n(Weight: 0.45)", EMERALD),
+        ("2B. Signal Rule Engine", "11 Deterministic Indicators\nUrgency, Threat, KYC, OTP\n(Weight: 0.25)", CYAN),
+        ("2C. URL Threat Analyzer", "Typosquatting, High-Abuse TLD\nHTTP, Brand Impersonation\n(Weight: 0.15)", AMBER),
+        ("2D. Workflow Engine", "8 Attack Playbooks\nPartial Sequence Alignment\n(Weight: 0.15)", PURPLE)
     ]
-    for p_name, p_seq in playbooks:
-        p_item = wf_card.add_paragraph()
-        p_item.text = f"• {p_name}: {p_seq}"
-        p_item.font.size = Pt(11)
-        p_item.font.color.rgb = TEXT_WHITE
+    for idx, (e_title, e_desc, e_col) in enumerate(engines):
+        left = Inches(0.6 + idx * 3.1)
+        eb = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, Inches(2.35), Inches(2.8), Inches(1.55))
+        eb.fill.solid()
+        eb.fill.fore_color.rgb = CARD_BG
+        eb.line.color.rgb = e_col
+        eb.line.width = Pt(1.5)
+        tfe = eb.text_frame
+        tfe.word_wrap = True
+        pe1 = tfe.paragraphs[0]
+        pe1.text = e_title
+        pe1.font.size = Pt(12)
+        pe1.font.bold = True
+        pe1.font.color.rgb = e_col
+        pe1.alignment = PP_ALIGN.CENTER
+        pe2 = tfe.add_paragraph()
+        pe2.text = "\n" + e_desc
+        pe2.font.size = Pt(10)
+        pe2.font.color.rgb = WHITE
+        pe2.alignment = PP_ALIGN.CENTER
 
-    # ==========================================
-    # SLIDE 7: Scam DNA & Emerging Pattern Discovery
-    # ==========================================
-    slide7 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide7)
-    add_header(slide7, "Scam DNA & Emerging Pattern Discovery")
+    # Layer 3: Scam DNA & Risk Engine
+    b_mid1 = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(4.15), Inches(5.9), Inches(1.2))
+    b_mid1.fill.solid()
+    b_mid1.fill.fore_color.rgb = CARD_BG
+    b_mid1.line.color.rgb = PURPLE
+    tfm1 = b_mid1.text_frame
+    tfm1.word_wrap = True
+    pm1 = tfm1.paragraphs[0]
+    pm1.text = "3. SCAM DNA & DBSCAN EMERGING ENGINE"
+    pm1.font.size = Pt(12)
+    pm1.font.bold = True
+    pm1.font.color.rgb = PURPLE
+    pm1.alignment = PP_ALIGN.CENTER
+    pm1_sub = tfm1.add_paragraph()
+    pm1_sub.text = "SentenceTransformer Cosine Similarity -> Campaign Tag (#UPI-KYC-042)\nUnsupervised DBSCAN Clusters -> Weekly Growth Velocity Alerts"
+    pm1_sub.font.size = Pt(10)
+    pm1_sub.font.color.rgb = SLATE_LIGHT
+    pm1_sub.alignment = PP_ALIGN.CENTER
 
-    dna_c1 = add_card(slide7, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2), "What is Scam DNA?")
-    p = dna_c1.add_paragraph()
-    p.text = "A persistent semantic vector fingerprint (e.g. #UPI-KYC-042) that links morphing scam variations:\n\n" \
-             "• Message A: \"Your SBI KYC will expire today. Update immediately.\"\n" \
-             "• Message B: \"Dear customer, your bank KYC is pending. Verify now.\"\n\n" \
-             "Both automatically map to #UPI-KYC-042.\n\n" \
-             "Benefits:\n" \
-             "1. Persistent campaign attribution\n" \
-             "2. Cross-channel correlation (SMS + WhatsApp + Web)\n" \
-             "3. Immediate signature generation for evolving threats"
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_WHITE
+    b_mid2 = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.8), Inches(4.15), Inches(5.9), Inches(1.2))
+    b_mid2.fill.solid()
+    b_mid2.fill.fore_color.rgb = DARK_EMERALD
+    b_mid2.line.color.rgb = EMERALD
+    tfm2 = b_mid2.text_frame
+    tfm2.word_wrap = True
+    pm2 = tfm2.paragraphs[0]
+    pm2.text = "4. COMPOSITE RISK & ALERT FATIGUE ENGINE"
+    pm2.font.size = Pt(12)
+    pm2.font.bold = True
+    pm2.font.color.rgb = EMERALD
+    pm2.alignment = PP_ALIGN.CENTER
+    pm2_sub = tfm2.add_paragraph()
+    pm2_sub.text = "Risk = 0.45*ML + 0.25*Rule + 0.15*URL + 0.15*Workflow (0-100)\nTiers: LOW (0-29) • MEDIUM (30-59) • HIGH (60-79) • CRITICAL (80-100)"
+    pm2_sub.font.size = Pt(10)
+    pm2_sub.font.color.rgb = WHITE
+    pm2_sub.alignment = PP_ALIGN.CENTER
 
-    dna_c2 = add_card(slide7, Inches(6.8), Inches(1.6), Inches(5.6), Inches(5.2), "Unsupervised Emerging Discovery (DBSCAN)", border_color=ACCENT_CYAN)
-    p = dna_c2.add_paragraph()
-    p.text = "Continuously clusters live incident vectors using DBSCAN:\n\n" \
-             "• Real-Time Velocity Tracking: Monitors weekly incident growth rate.\n\n" \
-             "• Automated Emerging Alert: Spikes >30% growth trigger \"⚠️ Emerging Scam Pattern Detected\".\n\n" \
-             "Live Discovered Clusters:\n" \
-             "• #UPI-KYC-042: 117 reports (+64% growth this week) — CRITICAL\n" \
-             "• #ELEC-DISCONN-019: 83 reports (+41% growth this week) — HIGH\n" \
-             "• #CYBER-ARREST-104: 64 reports (+78% growth this week) — CRITICAL\n" \
-             "• #TASK-JOB-088: 142 reports (+55% growth this week) — HIGH"
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_WHITE
+    # Layer 4: Output Deliverables
+    b_out = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(5.6), Inches(12.1), Inches(1.3))
+    b_out.fill.solid()
+    b_out.fill.fore_color.rgb = CARD_ALT
+    b_out.line.color.rgb = EMERALD
+    tfo = b_out.text_frame
+    tfo.word_wrap = True
+    po1 = tfo.paragraphs[0]
+    po1.text = "5. ACTIONABLE OUTPUT & VISUALIZATION LAYER"
+    po1.font.size = Pt(12)
+    po1.font.bold = True
+    po1.font.color.rgb = EMERALD
+    po1.alignment = PP_ALIGN.CENTER
+    po2 = tfo.add_paragraph()
+    po2.text = "✓ Calibrated Risk Score (91/100)    ✓ Explainable 'Why' Evidence    ✓ Predicted Next Attacker Step\n" \
+               "✓ React Flow Scam Graph Topology    ✓ Deduplicated Campaign Notice    ✓ Privacy-Redacted Storage"
+    po2.font.size = Pt(11)
+    po2.font.color.rgb = WHITE
+    po2.alignment = PP_ALIGN.CENTER
 
-    # ==========================================
-    # SLIDE 8: Alert Fatigue Control & Explainable AI
-    # ==========================================
-    slide8 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide8)
-    add_header(slide8, "Zero Alert Fatigue & Explainable AI")
+    # =========================================================================
+    # SLIDE 5: UNIVERSAL FRAUD EVENT TAXONOMY (WORKFLOW CONTENT PART 1)
+    # =========================================================================
+    s5 = prs.slides.add_slide(blank)
+    set_slide_bg(s5, prs)
+    add_slide_header(s5, "Workflow Intelligence: Universal Fraud Event Taxonomy", slide_num=5)
 
-    af_c1 = add_card(slide8, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2), "Adaptive Alert Tiering")
-    p = af_c1.add_paragraph()
-    p.text = "We eliminate nuisance alarms that cause users to ignore security warnings:\n\n" \
-             "• LOW (0–29): Passive monitoring ('Normal communication characteristics').\n\n" \
-             "• MEDIUM (30–59): Advisory caution ('Caution: Suspicious elements present').\n\n" \
-             "• HIGH (60–79): Strong warning ('High risk scam pattern detected').\n\n" \
-             "• CRITICAL (80–100): Immediate blocking intervention ('STOP — Potential financial scam').\n\n" \
-             "Campaign Deduplication:\n" \
-             "Repeated messages from known campaigns are grouped:\n" \
-             "\"🛡️ 118 similar messages detected from active campaign (#UPI-KYC-042).\""
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_WHITE
+    t_shape5 = s5.shapes.add_table(11, 4, Inches(0.6), Inches(1.3), Inches(12.1), Inches(5.7))
+    t5 = t_shape5.table
+    t5.columns[0].width = Inches(2.8)
+    t5.columns[1].width = Inches(2.2)
+    t5.columns[2].width = Inches(3.6)
+    t5.columns[3].width = Inches(3.5)
 
-    af_c2 = add_card(slide8, Inches(6.8), Inches(1.6), Inches(5.6), Inches(5.2), "Transparent Explainability")
-    p = af_c2.add_paragraph()
-    p.text = "Never return only a black-box percentage score. ScamGraph AI explains:\n\n" \
-             "✓ Why is this suspicious?\n" \
-             "  • Account freeze threat detected\n" \
-             "  • Urgency pressure (forcing hurried decisions)\n" \
-             "  • Untrusted external domain with typosquatting\n" \
-             "  • Demands personal credentials & OTP\n\n" \
-             "✓ What stage is currently unfolding?\n" \
-             "  • Stage 3: Phishing Link & Credential Harvest\n\n" \
-             "✓ What action should the user take?\n" \
-             "  • \"Do not click the link or share your OTP. Open your bank's official app directly.\""
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_WHITE
+    for c_i, h in enumerate(["Atomic Event Token", "Stage Role", "Detection Trigger Mechanism", "Real Message / Transcript Example"]):
+        style_table_cell(t5.cell(0, c_i), h, 10, True, BG_DARK, EMERALD)
 
-    # ==========================================
-    # SLIDE 9: Interactive Scam Graph Topology
-    # ==========================================
-    slide9 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide9)
-    add_header(slide9, "Interactive Scam Graph: React Flow Topology")
-
-    sg_card = add_card(slide9, Inches(0.8), Inches(1.6), Inches(11.7), Inches(5.2), "Visual Infrastructure Mapping (React Flow)")
-    p = sg_card.add_paragraph()
-    p.text = "ScamGraph AI converts raw unstructured text into an interconnected visual knowledge graph:"
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_MUTED
-
-    graph_points = [
-        ("Sender Node (Origin)", "Identifies telephone numbers, email origins, or social handles (+91-9823419821)."),
-        ("Message Payload Node", "Captures redacted communication payload and language attributes."),
-        ("URL & Domain Nodes", "Visualizes phishing links, unverified hosting providers, and typosquatted domains."),
-        ("UPI / Token Target Nodes", "Maps attacker UPI IDs, QR codes, and bank accounts."),
-        ("Scam DNA Campaign Node", "Connects the incident to the cluster fingerprint (#UPI-KYC-042)."),
-        ("Taxonomy Category Node", "Anchors the event to regulatory fraud categories (KYC, UPI, Banking)."),
-        ("Labeled Directed Edges", "Edges indicate semantic relationships: SENT, CONTAINS, LINKS_TO, USES, MATCHES, BELONGS_TO.")
+    events_rows = [
+        ("KYC_WARNING", "Initial Hook", "Keywords: kyc, pan, aadhaar, yono, suspended", "'Your SBI YONO account KYC expired today'"),
+        ("DISCONNECTION_THREAT", "Panic Hook", "Utility keywords + tonight / 9:30 PM outage", "'Electricity power will be cut tonight at 9:30 PM'"),
+        ("LAW_ENFORCEMENT_IMP", "Fear Coercion", "CBI, Cyber Crime, Customs, FedEx, Warrant", "'Inspector Rajesh from Mumbai Cyber Crime'"),
+        ("JOB_OR_LOTTERY_LURE", "Greed Hook", "Daily income, YouTube task, KBC 25 Lakhs", "'Earn ₹5,000 daily liking YouTube videos'"),
+        ("URGENCY", "Psychological", "Immediately, turant, 24 hours, final notice", "'Update within 2 hours or account freezes'"),
+        ("EXTERNAL_LINK", "Vector Delivery", "Regex URL extraction + suspicious TLD check", "'Click http://sbi-kyc-verify.xyz/login'"),
+        ("REMOTE_ACCESS_REQ", "Device Takeover", "AnyDesk, TeamViewer, QuickSupport, APK", "'Install QuickSupport APK and share 9-digit code'"),
+        ("CREDENTIAL_REQUEST", "Data Harvest", "CVV, NetBanking password, card details", "'Enter your username and card CVV to verify'"),
+        ("OTP_REQUEST", "Auth Bypass", "6-digit OTP, verification code, share token", "'Tell the 6-digit OTP sent to your mobile'"),
+        ("UPI_REQUEST", "Financial Drain", "Collect request, scan QR, enter UPI PIN", "'Scan QR and enter UPI PIN to receive ₹5,000'")
     ]
-    for gp_name, gp_desc in graph_points:
-        pg = sg_card.add_paragraph()
-        pg.text = f"• {gp_name}: {gp_desc}"
-        pg.font.size = Pt(12)
-        pg.font.color.rgb = TEXT_WHITE
+    for r_i, row_vals in enumerate(events_rows, start=1):
+        bg = CARD_BG if r_i % 2 == 1 else CARD_ALT
+        style_table_cell(t5.cell(r_i, 0), row_vals[0], 9, True, CYAN, bg)
+        style_table_cell(t5.cell(r_i, 1), row_vals[1], 9, True, AMBER, bg)
+        style_table_cell(t5.cell(r_i, 2), row_vals[2], 9, False, SLATE_LIGHT, bg)
+        style_table_cell(t5.cell(r_i, 3), row_vals[3], 9, False, WHITE, bg)
 
-    # ==========================================
-    # SLIDE 10: The Live Demo Walkthrough (Section 28)
-    # ==========================================
-    slide10 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide10)
-    add_header(slide10, "Live Demo Story: 5-Step Scam Evolution")
+    # =========================================================================
+    # SLIDE 6: THE 8 CANONICAL SCAM WORKFLOW PLAYBOOKS
+    # =========================================================================
+    s6 = prs.slides.add_slide(blank)
+    set_slide_bg(s6, prs)
+    add_slide_header(s6, "Scam Workflow Engine: 8 Canonical Attack Playbooks", slide_num=6)
 
-    demo_card = add_card(slide10, Inches(0.8), Inches(1.6), Inches(11.7), Inches(5.2), "Demonstrating the Complete Evolution")
-    p = demo_card.add_paragraph()
-    p.text = "Watch the intelligence unfold from single message → workflow → campaign → emerging cluster:"
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_MUTED
-
-    steps = [
-        ("Step 1: Suspicious Threat", "\"Your bank KYC will expire today. Update immediately.\"", "Registers basic urgency & threat signals."),
-        ("Step 2: Phishing URL Added", "\"Click http://sbi-kyc-verify.xyz/login to avoid suspension.\"", "URL analyzer flags brand impersonation and insecure HTTP."),
-        ("Step 3: Credential Harvest", "\"Enter PAN card and share the OTP to complete verification.\"", "Workflow aligns to KYC account takeover playbook."),
-        ("Step 4: Workflow Detected", "\"Approve ₹1 UPI fee to restore NetBanking access.\"", "Composite risk hits 91/100 (CRITICAL); fingerprinted as #UPI-KYC-042."),
-        ("Step 5: Campaign Cluster", "Inspect Emerging Patterns Screen", "Cluster shows 117 reports (+64% growth this week) grouped under single campaign.")
+    playbooks_grid = [
+        ("1. KYC Account Takeover (#UPI-KYC-042)", "KYC_WARNING ➔ URGENCY ➔ EXTERNAL_LINK ➔ CREDENTIAL_REQUEST ➔ OTP_REQUEST ➔ UNAUTHORIZED_TXN", "Exploits fear of bank account freeze to harvest NetBanking credentials and OTPs.", ROSE),
+        ("2. Reverse UPI Collect Scam (#UPI-COLLECT-019)", "PAYMENT_LURE ➔ UPI_LINK ➔ URGENCY ➔ PIN_OR_OTP_REQUEST ➔ FINANCIAL_DRAIN", "Deceives victim into entering their secret UPI PIN under the guise of receiving a refund or OLX payment.", AMBER),
+        ("3. Remote Tech/Bank Support (#SUPP-REMOTE-007)", "BANK_SUPPORT_IMPERSONATION ➔ DISPUTE_CLAIM ➔ REMOTE_ACCESS (AnyDesk) ➔ CREDENTIAL_REQUEST", "Tricks victim into installing screen-sharing tools to silently read SMS OTPs.", CYAN),
+        ("4. Part-Time Job & VIP Task Trap (#TASK-JOB-088)", "JOB_OFFER ➔ INITIAL_REWARD (₹150) ➔ VIP_TASK_FEE ➔ ESCALATING_PAYMENT ➔ LOCKOUT", "Builds trust with micro-payouts before demanding large crypto/UPI deposits to unlock earnings.", EMERALD),
+        ("5. Electricity Outage Panic (#ELEC-DISCONN-019)", "DISCONNECTION_THREAT ➔ URGENCY (Tonight) ➔ FAKE_OFFICER_CALL ➔ APK_OR_FEE ➔ OTP_DRAIN", "Creates evening panic about power disconnection to force interaction with a fake officer.", AMBER),
+        ("6. Law Enforcement Digital Arrest (#CYBER-ARREST-104)", "POLICE_IMPERSONATION ➔ CONTRABAND_ACCUSATION ➔ SKYPE_ARREST_THREAT ➔ ESCROW_TRANSFER", "Coerces victims on video call into transferring savings to a fake 'RBI verification account'.", ROSE),
+        ("7. Pre-Approved Loan Advance Fee (#LOAN-ADVANCE-031)", "LOAN_OFFER ➔ INSTANT_APPROVAL ➔ PROCESSING_OR_GST_FEE ➔ PAYMENT_REQUEST ➔ GHOSTING", "Offers 0% CIBIL-free loans and steals upfront processing/insurance fees.", PURPLE),
+        ("8. KBC / Lucky Draw Prize Scam (#KBC-LUCKY-055)", "LOTTERY_WIN_ANNOUNCEMENT ➔ WHATSAPP_DIRECTIVE ➔ TAX_CLEARANCE_FEE ➔ PAYMENT_REQUEST", "Promises ₹25 Lakh lottery wins and demands advance government tax transfer via UPI.", CYAN)
     ]
-    for s_num, s_in, s_out in steps:
-        ps = demo_card.add_paragraph()
-        ps.text = f"• {s_num}: {s_in} ➔ {s_out}"
-        ps.font.size = Pt(12)
-        ps.font.color.rgb = TEXT_WHITE
 
-    # ==========================================
-    # SLIDE 11: Privacy & Production Security
-    # ==========================================
-    slide11 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide11)
-    add_header(slide11, "Security & Privacy by Design")
+    for idx, (pb_title, pb_chain, pb_desc, pb_col) in enumerate(playbooks_grid):
+        col = idx % 2
+        row = idx // 2
+        left = Inches(0.6 + col * 6.15)
+        top = Inches(1.3 + row * 1.42)
+        tf_pb = add_box_card(s6, left, top, Inches(5.95), Inches(1.3), pb_title, border_color=pb_col, title_color=pb_col)
+        p_ch = tf_pb.add_paragraph()
+        p_ch.text = pb_chain
+        p_ch.font.size = Pt(8.5)
+        p_ch.font.bold = True
+        p_ch.font.color.rgb = WHITE
+        p_ds = tf_pb.add_paragraph()
+        p_ds.text = pb_desc
+        p_ds.font.size = Pt(8.5)
+        p_ds.font.color.rgb = SLATE_MUTED
 
-    sec_card = add_card(slide11, Inches(0.8), Inches(1.6), Inches(11.7), Inches(5.2), "Enterprise Privacy Architecture")
-    p = sec_card.add_paragraph()
-    p.text = "Privacy is a foundational feature, not an afterthought:"
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_MUTED
+    # =========================================================================
+    # SLIDE 7: WORKFLOW CONTENT DEEP-DIVE #1 (KYC & UPI COLLECT)
+    # =========================================================================
+    s7 = prs.slides.add_slide(blank)
+    set_slide_bg(s7, prs)
+    add_slide_header(s7, "Workflow Content Deep-Dive: KYC Fraud & Reverse UPI Scams", slide_num=7)
 
-    sec_points = [
-        ("Automated In-Memory Redaction", "Credit cards, CVVs, passwords, and OTP codes are irreversibly sanitized via regex before any logging or storage."),
-        ("Transient Payload Analysis", "Raw message text is never permanently archived. Only structural signal vectors and campaign fingerprints are retained."),
-        ("One-Way Identifier Hashing", "Phone numbers, emails, and reporter IDs are transformed into cryptographic SHA-256 hashes."),
-        ("One-Click Privacy Erasure", "Includes a 'Purge Local Incident Logs' endpoint allowing users to immediately wipe analysis history."),
-        ("Production Docker Deployment", "Containerized with Docker Compose (FastAPI backend + Nginx-served Vite React frontend).")
+    # Table 1: KYC Workflow
+    lbl1 = s7.shapes.add_textbox(Inches(0.6), Inches(1.2), Inches(12.0), Inches(0.35))
+    lbl1.text_frame.paragraphs[0].text = "PLAYBOOK 1: KYC ACCOUNT TAKEOVER WORKFLOW (#UPI-KYC-042)"
+    lbl1.text_frame.paragraphs[0].font.size = Pt(12)
+    lbl1.text_frame.paragraphs[0].font.bold = True
+    lbl1.text_frame.paragraphs[0].font.color.rgb = ROSE
+
+    t_kyc = s7.shapes.add_table(5, 4, Inches(0.6), Inches(1.55), Inches(12.1), Inches(2.4)).table
+    t_kyc.columns[0].width = Inches(1.8)
+    t_kyc.columns[1].width = Inches(5.3)
+    t_kyc.columns[2].width = Inches(2.5)
+    t_kyc.columns[3].width = Inches(2.5)
+    for ci, h in enumerate(["Workflow Stage", "Actual Scammer Content (English / Hinglish)", "Extracted Signals", "Engine State & Risk"]):
+        style_table_cell(t_kyc.cell(0, ci), h, 9.5, True, WHITE, DARK_ROSE)
+
+    kyc_steps = [
+        ("Stage 1: Threat", "'Dear SBI Customer, your YONO account is suspended due to pending KYC.'", "kyc_request, threat", "Stage 1 Matched (Risk: 48)"),
+        ("Stage 2: Link", "'Aapka khata band ho jayega. Click http://sbi-kyc-verify.xyz to update PAN.'", "urgency, suspicious_url", "Stage 3 Matched (Risk: 76)"),
+        ("Stage 3: Harvest", "'Enter your NetBanking Username, Password & Date of Birth on portal.'", "credential_request", "Stage 4 Matched (Risk: 86)"),
+        ("Stage 4: OTP", "'Share the 6-digit high-security OTP sent to your mobile to restore access.'", "otp_request", "WORKFLOW DETECTED (91/100)")
     ]
-    for sp_name, sp_desc in sec_points:
-        psp = sec_card.add_paragraph()
-        psp.text = f"• {sp_name}: {sp_desc}"
-        psp.font.size = Pt(12)
-        psp.font.color.rgb = TEXT_WHITE
+    for ri, rdata in enumerate(kyc_steps, start=1):
+        bg = CARD_BG if ri % 2 == 1 else CARD_ALT
+        style_table_cell(t_kyc.cell(ri, 0), rdata[0], 9, True, CYAN, bg)
+        style_table_cell(t_kyc.cell(ri, 1), rdata[1], 9, False, WHITE, bg)
+        style_table_cell(t_kyc.cell(ri, 2), rdata[2], 9, False, AMBER, bg)
+        style_table_cell(t_kyc.cell(ri, 3), rdata[3], 9, True, EMERALD if ri<4 else ROSE, bg)
 
-    # ==========================================
-    # SLIDE 12: Business Impact & Future Roadmap
-    # ==========================================
-    slide12 = prs.slides.add_slide(blank_layout)
-    add_slide_background(slide12)
-    add_header(slide12, "Impact, Deployment & Future Roadmap")
+    # Table 2: UPI Collect Workflow
+    lbl2 = s7.shapes.add_textbox(Inches(0.6), Inches(4.15), Inches(12.0), Inches(0.35))
+    lbl2.text_frame.paragraphs[0].text = "PLAYBOOK 2: REVERSE UPI COLLECT / REFUND TRAP (#UPI-COLLECT-019)"
+    lbl2.text_frame.paragraphs[0].font.size = Pt(12)
+    lbl2.text_frame.paragraphs[0].font.bold = True
+    lbl2.text_frame.paragraphs[0].font.color.rgb = AMBER
 
-    imp_c1 = add_card(slide12, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2), "Business Impact")
-    p = imp_c1.add_paragraph()
-    p.text = "• Banking SDK Integration: Embed ScamGraph AI into banking apps (YONO, HDFC, ICICI) to warn customers before approving malicious UPI mandates.\n\n" \
-             "• Telecom SMS Sidecar: Telco-level workflow scoring across sequential SMS alerts before delivery.\n\n" \
-             "• Cyber Crime Intelligence: Shares anonymized Scam DNA campaign clusters with national fraud reporting portals (1930 / cybercrime.gov.in).\n\n" \
-             "• Measurable Metric: Cuts user financial loss by stopping fraud at Stage 2/3 instead of post-transaction."
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_WHITE
+    t_upi = s7.shapes.add_table(5, 4, Inches(0.6), Inches(4.5), Inches(12.1), Inches(2.4)).table
+    t_upi.columns[0].width = Inches(1.8)
+    t_upi.columns[1].width = Inches(5.3)
+    t_upi.columns[2].width = Inches(2.5)
+    t_upi.columns[3].width = Inches(2.5)
+    for ci, h in enumerate(["Workflow Stage", "Actual Scammer Content (English / Hinglish)", "Extracted Signals", "Engine State & Risk"]):
+        style_table_cell(t_upi.cell(0, ci), h, 9.5, True, BG_DARK, AMBER)
 
-    imp_c2 = add_card(slide12, Inches(6.8), Inches(1.6), Inches(5.6), Inches(5.2), "Future Roadmap", border_color=ACCENT_GREEN)
-    p = imp_c2.add_paragraph()
-    p.text = "• Indic Voice Audio Stream Analysis: Real-time speech-to-text pipeline for live scam call interception (Hindi, Tamil, Telugu, Bengali).\n\n" \
-             "• Distributed Graph Database: Migrate from SQLite/Postgres to Neo4j / AWS Neptune for billion-scale fraud ring graph traversal.\n\n" \
-             "• Automated Takedown API: Auto-submits abuse reports to domain registrars when malicious domains exceed risk threshold 85+.\n\n" \
-             "• Open Source Community Defense: Community-contributed fraud playbook marketplace."
-    p.font.size = Pt(12)
-    p.font.color.rgb = TEXT_WHITE
+    upi_steps = [
+        ("Stage 1: Lure", "'You have won a PhonePe cashback scratch card of ₹4,999! Claim now.'", "reward_lure", "Stage 1 Matched (Risk: 42)"),
+        ("Stage 2: Collect", "'Bhai maine galti se ₹5,000 bhej diye, approve collect link: http://upi-claim.in'", "payment_request, url", "Stage 2 Matched (Risk: 68)"),
+        ("Stage 3: Urgency", "'Cashback link expires in 10 minutes. Open Google Pay immediately.'", "urgency", "Stage 3 Matched (Risk: 78)"),
+        ("Stage 4: PIN Trap", "'Paise account mein receive karne ke liye QR scan karein aur 6-digit UPI PIN dalein.'", "otp_request, upi_pin", "WORKFLOW DETECTED (93/100)")
+    ]
+    for ri, rdata in enumerate(upi_steps, start=1):
+        bg = CARD_BG if ri % 2 == 1 else CARD_ALT
+        style_table_cell(t_upi.cell(ri, 0), rdata[0], 9, True, CYAN, bg)
+        style_table_cell(t_upi.cell(ri, 1), rdata[1], 9, False, WHITE, bg)
+        style_table_cell(t_upi.cell(ri, 2), rdata[2], 9, False, AMBER, bg)
+        style_table_cell(t_upi.cell(ri, 3), rdata[3], 9, True, EMERALD if ri<4 else ROSE, bg)
 
-    # Save presentation file
-    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ScamGraph_AI_Hackathon_Pitch.pptx")
-    prs.save(output_path)
-    print(f"Successfully generated hackathon presentation at: {output_path}")
-    return output_path
+    # =========================================================================
+    # SLIDE 8: WORKFLOW CONTENT DEEP-DIVE #2 (DIGITAL ARREST & ELECTRICITY)
+    # =========================================================================
+    s8 = prs.slides.add_slide(blank)
+    set_slide_bg(s8, prs)
+    add_slide_header(s8, "Workflow Content Deep-Dive: Digital Arrest & Electricity Scams", slide_num=8)
+
+    # Table 1: Digital Arrest
+    lbl3 = s8.shapes.add_textbox(Inches(0.6), Inches(1.2), Inches(12.0), Inches(0.35))
+    lbl3.text_frame.paragraphs[0].text = "PLAYBOOK 3: LAW ENFORCEMENT DIGITAL ARREST EXTORTION (#CYBER-ARREST-104)"
+    lbl3.text_frame.paragraphs[0].font.size = Pt(12)
+    lbl3.text_frame.paragraphs[0].font.bold = True
+    lbl3.text_frame.paragraphs[0].font.color.rgb = PURPLE
+
+    t_da = s8.shapes.add_table(5, 4, Inches(0.6), Inches(1.55), Inches(12.1), Inches(2.4)).table
+    t_da.columns[0].width = Inches(1.8)
+    t_da.columns[1].width = Inches(5.3)
+    t_da.columns[2].width = Inches(2.5)
+    t_da.columns[3].width = Inches(2.5)
+    for ci, h in enumerate(["Workflow Stage", "Actual Scammer Content (Call / Chat Transcript)", "Extracted Signals", "Engine State & Risk"]):
+        style_table_cell(t_da.cell(0, ci), h, 9.5, True, WHITE, PURPLE)
+
+    da_steps = [
+        ("Stage 1: Authority", "'This is Inspector Rajesh Kumar from Mumbai Cyber Crime / CBI Headquarters.'", "impersonation", "Stage 1 Matched (Risk: 52)"),
+        ("Stage 2: Contraband", "'A FedEx parcel in your name containing 5 passports & 160g MDMA drugs was seized.'", "threat, contraband", "Stage 2 Matched (Risk: 79)"),
+        ("Stage 3: Isolation", "'Non-bailable warrant issued on your Aadhaar. Stay on Skype video call under Digital Arrest.'", "urgency, arrest_threat", "Stage 4 Matched (Risk: 90)"),
+        ("Stage 4: Escrow", "'Transfer all funds to RBI Safety Escrow Account for audit to prove innocence.'", "payment_request", "WORKFLOW DETECTED (98/100)")
+    ]
+    for ri, rdata in enumerate(da_steps, start=1):
+        bg = CARD_BG if ri % 2 == 1 else CARD_ALT
+        style_table_cell(t_da.cell(ri, 0), rdata[0], 9, True, CYAN, bg)
+        style_table_cell(t_da.cell(ri, 1), rdata[1], 9, False, WHITE, bg)
+        style_table_cell(t_da.cell(ri, 2), rdata[2], 9, False, AMBER, bg)
+        style_table_cell(t_da.cell(ri, 3), rdata[3], 9, True, EMERALD if ri<4 else ROSE, bg)
+
+    # Table 2: Electricity Disconnection
+    lbl4 = s8.shapes.add_textbox(Inches(0.6), Inches(4.15), Inches(12.0), Inches(0.35))
+    lbl4.text_frame.paragraphs[0].text = "PLAYBOOK 4: NIGHT ELECTRICITY DISCONNECTION PANIC (#ELEC-DISCONN-019)"
+    lbl4.text_frame.paragraphs[0].font.size = Pt(12)
+    lbl4.text_frame.paragraphs[0].font.bold = True
+    lbl4.text_frame.paragraphs[0].font.color.rgb = CYAN
+
+    t_el = s8.shapes.add_table(5, 4, Inches(0.6), Inches(4.5), Inches(12.1), Inches(2.4)).table
+    t_el.columns[0].width = Inches(1.8)
+    t_el.columns[1].width = Inches(5.3)
+    t_el.columns[2].width = Inches(2.5)
+    t_el.columns[3].width = Inches(2.5)
+    for ci, h in enumerate(["Workflow Stage", "Actual Scammer Content (English / Hinglish)", "Extracted Signals", "Engine State & Risk"]):
+        style_table_cell(t_el.cell(0, ci), h, 9.5, True, BG_DARK, CYAN)
+
+    el_steps = [
+        ("Stage 1: Outage", "'Dear Consumer, aapki bijli aaj raat 9:30 baje sub-station se kaat di jayegi.'", "threat, utility", "Stage 1 Matched (Risk: 55)"),
+        ("Stage 2: Urgency", "'Previous month bill was not updated. Only 1 hour remaining before disconnection.'", "urgency", "Stage 2 Matched (Risk: 70)"),
+        ("Stage 3: Fake SDO", "'Immediately contact Electricity SDO Officer Sharma at +91-9876543210.'", "phone_contact, impersonation", "Stage 3 Matched (Risk: 83)"),
+        ("Stage 4: APK/Fee", "'Pay ₹10 meter update charge at http://bses-portal.in and share SMS OTP.'", "payment, url, otp", "WORKFLOW DETECTED (92/100)")
+    ]
+    for ri, rdata in enumerate(el_steps, start=1):
+        bg = CARD_BG if ri % 2 == 1 else CARD_ALT
+        style_table_cell(t_el.cell(ri, 0), rdata[0], 9, True, CYAN, bg)
+        style_table_cell(t_el.cell(ri, 1), rdata[1], 9, False, WHITE, bg)
+        style_table_cell(t_el.cell(ri, 2), rdata[2], 9, False, AMBER, bg)
+        style_table_cell(t_el.cell(ri, 3), rdata[3], 9, True, EMERALD if ri<4 else ROSE, bg)
+
+    # =========================================================================
+    # SLIDE 9: PARTIAL MATCHING & PREDICTIVE INTERVENTION
+    # =========================================================================
+    s9 = prs.slides.add_slide(blank)
+    set_slide_bg(s9, prs)
+    add_slide_header(s9, "Predictive Workflow Engine: Stopping Scams Mid-Flight", slide_num=9)
+
+    tf_pm = add_box_card(s9, Inches(0.6), Inches(1.3), Inches(5.8), Inches(3.2), "Partial-Order Sequence Alignment Math", border_color=EMERALD, title_color=EMERALD)
+    add_bullet(tf_pm, "Why Partial Matching?", "Users rarely paste all 6 steps at once. We must detect the workflow when only 2 or 3 events have occurred.", 11)
+    add_bullet(tf_pm, "Overlap Ratio:", "|Detected_Events ∩ Playbook_Steps| / |Playbook_Steps|", 11, color=CYAN)
+    add_bullet(tf_pm, "Category Synergy Bonus:", "+0.20 boost when ML classifier category aligns with the playbook category.", 11)
+    add_bullet(tf_pm, "Formula:", "Confidence = min(0.99, 0.50 + 0.45 * Overlap + Category_Bonus)", 11, color=EMERALD)
+
+    tf_pr = add_box_card(s9, Inches(6.8), Inches(1.3), Inches(5.9), Inches(3.2), "Example: Partial Match at Stage 3 (82% Confidence)", border_color=AMBER, title_color=AMBER)
+    add_bullet(tf_pr, "Observed Events:", "[KYC_WARNING]  ➔  [URGENCY]  ➔  [EXTERNAL_LINK]", 11, color=WHITE)
+    add_bullet(tf_pr, "Missing Future Events:", "[CREDENTIAL_REQUEST]  ➔  [OTP_REQUEST]  ➔  [DRAIN]", 11, color=SLATE_MUTED)
+    add_bullet(tf_pr, "Classification:", "Potential KYC Scam Workflow — 82% Confidence", 11, color=AMBER)
+    add_bullet(tf_pr, "Next Move Prediction:", "'Attacker will attempt Credential & OTP Harvesting next. Do not open link.'", 11, color=EMERALD)
+
+    # Visual Stepper showing Observed vs Predicted
+    stepper_title = s9.shapes.add_textbox(Inches(0.6), Inches(4.7), Inches(12.0), Inches(0.35))
+    stepper_title.text_frame.paragraphs[0].text = "LIVE STAGE PROGRESSION TRACKER (OBSERVED VS. PREDICTED ATTACKER MOVES)"
+    stepper_title.text_frame.paragraphs[0].font.size = Pt(11)
+    stepper_title.text_frame.paragraphs[0].font.bold = True
+    stepper_title.text_frame.paragraphs[0].font.color.rgb = CYAN
+
+    st_items = [
+        ("Stage 1: KYC Warning", "✓ OBSERVED", DARK_EMERALD, EMERALD),
+        ("Stage 2: Urgency Threat", "✓ OBSERVED", DARK_EMERALD, EMERALD),
+        ("Stage 3: Phishing Link", "✓ CURRENT STAGE", DARK_EMERALD, CYAN),
+        ("Stage 4: Credential Input", "⚡ PREDICTED NEXT", DARK_ROSE, ROSE),
+        ("Stage 5: OTP Theft", "⚡ PREDICTED", CARD_BG, SLATE_MUTED),
+        ("Stage 6: Account Drain", "🛑 PREVENTED", CARD_BG, SLATE_MUTED)
+    ]
+    for idx, (st_name, st_stat, bg_c, br_c) in enumerate(st_items):
+        left = Inches(0.6 + idx * 2.05)
+        sb = s9.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, Inches(5.15), Inches(1.85), Inches(1.5))
+        sb.fill.solid()
+        sb.fill.fore_color.rgb = bg_c
+        sb.line.color.rgb = br_c
+        sb.line.width = Pt(2)
+        tfs = sb.text_frame
+        tfs.word_wrap = True
+        p1 = tfs.paragraphs[0]
+        p1.text = st_stat
+        p1.font.size = Pt(9)
+        p1.font.bold = True
+        p1.font.color.rgb = br_c
+        p1.alignment = PP_ALIGN.CENTER
+        p2 = tfs.add_paragraph()
+        p2.text = "\n" + st_name
+        p2.font.size = Pt(10.5)
+        p2.font.bold = True
+        p2.font.color.rgb = WHITE
+        p2.alignment = PP_ALIGN.CENTER
+
+    # =========================================================================
+    # SLIDE 10: SCAM DNA & EMERGING PATTERN DISCOVERY
+    # =========================================================================
+    s10 = prs.slides.add_slide(blank)
+    set_slide_bg(s10, prs)
+    add_slide_header(s10, "Scam DNA Fingerprinting & Emerging Pattern Discovery", slide_num=10)
+
+    tf_dna = add_box_card(s10, Inches(0.6), Inches(1.3), Inches(5.8), Inches(5.5), "Scam DNA: Semantic Campaign Fingerprinting", border_color=PURPLE, title_color=PURPLE)
+    add_bullet(tf_dna, "The Problem:", "Scammers mutate bank names (SBI -> HDFC) and URLs every hour to bypass hash filters.", 11)
+    add_bullet(tf_dna, "Our Solution:", "We encode messages using SentenceTransformer ('all-MiniLM-L6-v2') + structural signal vectors.", 11)
+    add_bullet(tf_dna, "Variant A:", "'Your SBI KYC will expire today. Update now.'", 10.5, color=CYAN)
+    add_bullet(tf_dna, "Variant B:", "'Dear customer, your bank KYC is pending. Verify immediately.'", 10.5, color=CYAN)
+    add_bullet(tf_dna, "Variant C (Hinglish):", "'Aapka SBI account block ho jayega, KYC update karein.'", 10.5, color=CYAN)
+    add_bullet(tf_dna, "Shared Fingerprint:", "All 3 resolve to Scam DNA: #UPI-KYC-042 (Cosine Sim > 0.78)", 11, color=EMERALD)
+
+    tf_em = add_box_card(s10, Inches(6.8), Inches(1.3), Inches(5.9), Inches(2.5), "Unsupervised Emerging Discovery (DBSCAN)", border_color=CYAN, title_color=CYAN)
+    add_bullet(tf_em, "Incident Vector:", "[Embedding + Category + Signals + Workflow + Timestamp]", 10.5)
+    add_bullet(tf_em, "Density Clustering:", "DBSCAN groups unknown scam waves without requiring pre-labeled classes.", 10.5)
+    add_bullet(tf_em, "Growth Alert:", "Clusters growing >30% WoW trigger '⚠️ Emerging Scam Pattern Detected'.", 10.5, color=AMBER)
+
+    # 4 Emerging Cluster Cards
+    clusters = [
+        ("#UPI-KYC-042", "YONO / Bank KYC APK Wave", "117 Reports", "+64% this week", "CRITICAL", ROSE),
+        ("#ELEC-DISCONN-019", "Night Power Outage Scam", "83 Reports", "+41% this week", "HIGH", AMBER),
+        ("#CYBER-ARREST-104", "FedEx / CBI Digital Arrest", "64 Reports", "+78% this week", "CRITICAL", ROSE),
+        ("#TASK-JOB-088", "Telegram YouTube Like Tasks", "142 Reports", "+55% this week", "HIGH", EMERALD)
+    ]
+    for idx, (c_id, c_name, c_rep, c_gr, c_rk, c_col) in enumerate(clusters):
+        col = idx % 2
+        row = idx // 2
+        left = Inches(6.8 + col * 3.0)
+        top = Inches(4.0 + row * 1.45)
+        cb = add_box_card(s10, left, top, Inches(2.9), Inches(1.35), f"{c_id} ({c_rk})", border_color=c_col, title_color=c_col)
+        p = cb.add_paragraph()
+        p.text = f"{c_name}\n{c_rep}  •  {c_gr}"
+        p.font.size = Pt(9.5)
+        p.font.color.rgb = WHITE
+
+    # =========================================================================
+    # SLIDE 11: MACHINE LEARNING PIPELINE & REAL CONFUSION MATRIX
+    # =========================================================================
+    s11 = prs.slides.add_slide(blank)
+    set_slide_bg(s11, prs)
+    add_slide_header(s11, "Machine Learning Pipeline & Real Test Evaluation", slide_num=11)
+
+    tf_ml = add_box_card(s11, Inches(0.6), Inches(1.3), Inches(6.6), Inches(5.5), "Trained Model Architecture & Dataset Splits", border_color=EMERALD, title_color=EMERALD)
+    add_bullet(tf_ml, "Multilingual Architecture:", "Google MuRIL ('google/muril-base-cased') + Dual TF-IDF FeatureUnion (Word 1-2 + Char 2-5 subwords) with Sigmoid Platt Calibration.", 10.5)
+    add_bullet(tf_ml, "Authentic Dataset:", "276 unique curated Indian scam & benign samples (80.4% English, 19.6% Hinglish) across 13 categories.", 10.5)
+    add_bullet(tf_ml, "Stratified Splits:", "70% Train (193 rows) • 15% Validation (41 rows) • 15% Held-Out Test (42 rows).", 10.5, color=CYAN)
+    add_bullet(tf_ml, "Test Recall (Fraud Capture):", "100.00% — Zero false negatives on held-out test set.", 11, color=EMERALD)
+    add_bullet(tf_ml, "Test Precision:", "96.43% — Minimal false alarms on legitimate bank alerts.", 11, color=EMERALD)
+    add_bullet(tf_ml, "Test F1 Score:", "98.18%  |  ROC-AUC: 1.0000  |  Accuracy: 97.62%", 11, color=WHITE)
+    add_bullet(tf_ml, "13 Category Head:", "87.80% Validation Accuracy across KYC, UPI, OTP, Phishing, Banking, Job, Loan, Lottery, Electricity, Investment, Digital Arrest, Impersonation, Other.", 10)
+
+    # Embed actual confusion_matrix.png image on the right card!
+    cm_card = add_box_card(s11, Inches(7.5), Inches(1.3), Inches(5.2), Inches(5.5), "Held-Out Test Confusion Matrix", border_color=CYAN, title_color=CYAN)
+    if os.path.exists(CM_IMAGE_PATH):
+        s11.shapes.add_picture(CM_IMAGE_PATH, Inches(7.85), Inches(1.95), width=Inches(4.5))
+    else:
+        add_bullet(cm_card, "Confusion Matrix:", "TN=14, FP=1, FN=0, TP=27", 12)
+
+    # =========================================================================
+    # SLIDE 12: ZERO ALERT FATIGUE & EXPLAINABLE AI
+    # =========================================================================
+    s12 = prs.slides.add_slide(blank)
+    set_slide_bg(s12, prs)
+    add_slide_header(s12, "Alert Fatigue Prevention & Explainable AI", slide_num=12)
+
+    # 4 Adaptive Alert Tiers
+    tiers = [
+        ("LOW (0–29)", "Passive Monitoring", "No interruption. Shown as verified or normal message.", EMERALD),
+        ("MEDIUM (30–59)", "Advisory Caution", "'Be careful before interacting. Verify sender independently.'", CYAN),
+        ("HIGH (60–79)", "Strong Warning", "'Multiple scam indicators & partial workflow detected.'", AMBER),
+        ("CRITICAL (80–100)", "Blocking Intervention", "'STOP — Active multi-stage financial scam workflow.'", ROSE)
+    ]
+    for idx, (t_rng, t_type, t_msg, t_col) in enumerate(tiers):
+        left = Inches(0.6 + idx * 3.1)
+        tc = add_box_card(s12, left, Inches(1.3), Inches(2.85), Inches(1.9), t_rng, border_color=t_col, title_color=t_col)
+        p1 = tc.add_paragraph()
+        p1.text = t_type
+        p1.font.size = Pt(11)
+        p1.font.bold = True
+        p1.font.color.rgb = WHITE
+        p2 = tc.add_paragraph()
+        p2.text = "\n" + t_msg
+        p2.font.size = Pt(9.5)
+        p2.font.color.rgb = SLATE_LIGHT
+
+    tf_dedup = add_box_card(s12, Inches(0.6), Inches(3.5), Inches(5.8), Inches(3.4), "Campaign Deduplication (Anti-Fatigue)", border_color=PURPLE, title_color=PURPLE)
+    add_bullet(tf_dedup, "The Nuisance Problem:", "Victims often receive 5 identical SMS messages from different numbers in 10 minutes.", 11)
+    add_bullet(tf_dedup, "Scam DNA Suppression:", "Instead of firing 5 separate blocking popups, ScamGraph AI matches the Scam DNA (#UPI-KYC-042) and groups them:", 11)
+    add_bullet(tf_dedup, "Grouped Banner:", "'🛡️ 118 similar messages detected from active campaign (#UPI-KYC-042).'", 11, color=EMERALD)
+
+    tf_xai = add_box_card(s12, Inches(6.8), Inches(3.5), Inches(5.9), Inches(3.4), "Explainable AI Output Structure", border_color=EMERALD, title_color=EMERALD)
+    add_bullet(tf_xai, "Risk Score:", "91 / 100 — CRITICAL RISK (KYC Fraud)", 11, color=ROSE)
+    add_bullet(tf_xai, "Why? (Evidence):", "✓ Account freeze threat  ✓ Urgency pressure  ✓ Brand typosquatting URL (sbi-kyc-verify.xyz)  ✓ Requests OTP", 10.5)
+    add_bullet(tf_xai, "Actionable Advice:", "'Do NOT click the verification link or share your OTP. Open your bank's official YONO app directly.'", 10.5, color=EMERALD)
+
+    # =========================================================================
+    # SLIDE 13: VISUAL SCAM GRAPH TOPOLOGY (REACT FLOW)
+    # =========================================================================
+    s13 = prs.slides.add_slide(blank)
+    set_slide_bg(s13, prs)
+    add_slide_header(s13, "Interactive Scam Graph: Visual Attack Topology", slide_num=13)
+
+    # Draw visual node-link diagram on left
+    graph_nodes = [
+        ("Sender Node", "+91-9823419821 (Unknown Origin)", DARK_EMERALD, EMERALD, "SENT"),
+        ("Payload Node", "'Dear SBI Customer, KYC suspended...'", CARD_BG, SLATE_LIGHT, "CONTAINS"),
+        ("Phishing URL Node", "http://sbi-kyc-update.xyz/login", DARK_ROSE, ROSE, "LINKS_TO"),
+        ("Impersonated Domain", "Fake Bank Portal (.xyz TLD)", CARD_BG, AMBER, "USES"),
+        ("Workflow Stage Node", "Credential & OTP Request", CARD_BG, PURPLE, "MATCHES"),
+        ("Scam DNA & Category", "#UPI-KYC-042  ➔  KYC Fraud Category", DARK_EMERALD, CYAN, None)
+    ]
+    for idx, (n_type, n_val, n_bg, n_col, edge_lbl) in enumerate(graph_nodes):
+        top = Inches(1.3 + idx * 0.92)
+        nb = s13.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), top, Inches(5.5), Inches(0.62))
+        nb.fill.solid()
+        nb.fill.fore_color.rgb = n_bg
+        nb.line.color.rgb = n_col
+        nb.line.width = Pt(1.5)
+        tfn = nb.text_frame
+        p = tfn.paragraphs[0]
+        p.text = f"[{n_type.upper()}]   {n_val}"
+        p.font.size = Pt(10)
+        p.font.bold = True
+        p.font.color.rgb = WHITE
+        p.alignment = PP_ALIGN.CENTER
+
+        if edge_lbl:
+            lbl_box = s13.shapes.add_textbox(Inches(2.8), top + Inches(0.61), Inches(1.5), Inches(0.3))
+            pl = lbl_box.text_frame.paragraphs[0]
+            pl.text = f"↓ {edge_lbl}"
+            pl.font.size = Pt(8.5)
+            pl.font.bold = True
+            pl.font.color.rgb = EMERALD
+            pl.alignment = PP_ALIGN.CENTER
+
+    tf_gi = add_box_card(s13, Inches(6.8), Inches(1.3), Inches(5.9), Inches(5.5), "Why Graph Topology Matters for Security Teams", border_color=CYAN, title_color=CYAN)
+    add_bullet(tf_gi, "1. Powered by React Flow 12:", "Interactive pan, zoom, animated edges, and live node attribute inspection.", 11)
+    add_bullet(tf_gi, "2. Entity-Relationship Mapping:", "Connects Phone Numbers, Messages, URLs, Domains, UPI Handles, Scam DNA, and Categories.", 11)
+    add_bullet(tf_gi, "3. Fraud Ring Attribution:", "Reveals when 50 different phone numbers link to the exact same UPI ID or phishing domain.", 11)
+    add_bullet(tf_gi, "4. One-Click Investigation:", "Security analysts click any node to inspect its TLD flags, protocol status, and campaign history.", 11)
+
+    # =========================================================================
+    # SLIDE 14: 5-STEP GUIDED DEMO WALKTHROUGH (SECTION 28)
+    # =========================================================================
+    s14 = prs.slides.add_slide(blank)
+    set_slide_bg(s14, prs)
+    add_slide_header(s14, "Live Demo Story: Watching a Scam Workflow Unfold", slide_num=14)
+
+    demo_steps = [
+        ("STEP 1", "Suspicious Threat", "'Your bank KYC will expire today. Update immediately.'", "Detects urgency & account threat signals -> Risk: 52 (MEDIUM)", CYAN),
+        ("STEP 2", "Phishing URL Added", "Adds link: 'http://sbi-kyc-verify.xyz/login'", "URL Analyzer flags .xyz TLD, HTTP, & SBI impersonation -> Risk: 76 (HIGH)", AMBER),
+        ("STEP 3", "OTP Harvest Added", "Adds: 'Enter PAN and share 6-digit OTP to verify.'", "Workflow Engine aligns 4 stages of KYC Playbook -> Risk: 88 (CRITICAL)", ROSE),
+        ("STEP 4", "Workflow Detected", "Full multi-step attack + ₹1 UPI mandate", "Triggers SCAM WORKFLOW DETECTED (91/100) + Scam DNA: #UPI-KYC-042", ROSE),
+        ("STEP 5", "Emerging Cluster", "Opens Emerging Patterns & Scam Graph", "Displays 117 linked reports (+64% weekly growth) & full React Flow graph", EMERALD)
+    ]
+    for idx, (d_st, d_title, d_in, d_out, d_col) in enumerate(demo_steps):
+        top = Inches(1.3 + idx * 1.12)
+        card = s14.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), top, Inches(12.1), Inches(0.98))
+        card.fill.solid()
+        card.fill.fore_color.rgb = CARD_BG
+        card.line.color.rgb = d_col
+        card.line.width = Pt(1.5)
+        tfd = card.text_frame
+        tfd.word_wrap = True
+        p1 = tfd.paragraphs[0]
+        p1.text = f"{d_st}: {d_title.upper()}   |   Input: {d_in}"
+        p1.font.size = Pt(11)
+        p1.font.bold = True
+        p1.font.color.rgb = d_col
+        p2 = tfd.add_paragraph()
+        p2.text = f"System Response:  {d_out}"
+        p2.font.size = Pt(10.5)
+        p2.font.color.rgb = WHITE
+
+    # =========================================================================
+    # SLIDE 15: PRIVACY, IMPACT & FUTURE ROADMAP
+    # =========================================================================
+    s15 = prs.slides.add_slide(blank)
+    set_slide_bg(s15, prs)
+    add_slide_header(s15, "Privacy by Design, Deployment & Future Roadmap", slide_num=15)
+
+    tf_priv = add_box_card(s15, Inches(0.6), Inches(1.3), Inches(3.8), Inches(5.5), "1. Security & Privacy Core", border_color=EMERALD, title_color=EMERALD)
+    add_bullet(tf_priv, "Auto PII Redaction:", "Masks 16-digit cards, CVVs, passwords, and OTPs in-memory before logging.", 10.5)
+    add_bullet(tf_priv, "Identifier Hashing:", "Sender numbers & contacts hashed via SHA-256 / UUID5.", 10.5)
+    add_bullet(tf_priv, "Zero Raw Archival:", "Stores only redacted previews & signal vectors.", 10.5)
+    add_bullet(tf_priv, "One-Click Purge:", "DELETE /api/incidents/clear wipes local history immediately.", 10.5)
+
+    tf_dep = add_box_card(s15, Inches(4.75), Inches(1.3), Inches(3.8), Inches(5.5), "2. Production Stack", border_color=CYAN, title_color=CYAN)
+    add_bullet(tf_dep, "Backend:", "FastAPI + SQLAlchemy (SQLite / PostgreSQL) + Pytest (7/7 Passing).", 10.5)
+    add_bullet(tf_dep, "Frontend:", "React 18 + Vite + Tailwind CSS + Recharts + React Flow 12.", 10.5)
+    add_bullet(tf_dep, "ML Stack:", "PyTorch + Transformers (MuRIL) + Scikit-Learn + SentenceTransformers.", 10.5)
+    add_bullet(tf_dep, "Dockerized:", "Multi-container docker-compose.yml with Nginx reverse proxy.", 10.5)
+
+    tf_road = add_box_card(s15, Inches(8.9), Inches(1.3), Inches(3.8), Inches(5.5), "3. Future Impact & Scale", border_color=PURPLE, title_color=PURPLE)
+    add_bullet(tf_road, "Banking SDK:", "Pre-transaction warning hook inside UPI & NetBanking apps.", 10.5)
+    add_bullet(tf_road, "Live Call Audio:", "Real-time Indic speech-to-text stream interception for Digital Arrest calls.", 10.5)
+    add_bullet(tf_road, "1930 Cyber Crime Sync:", "Automated Scam DNA feed for national takedowns.", 10.5)
+    add_bullet(tf_road, "GitHub Repo:", "github.com/Nishkarsh807/scamgraph-ai", 10.5, color=EMERALD)
+
+    prs.save(OUTPUT_PPTX)
+    print(f"Presentation saved successfully: {OUTPUT_PPTX} (Total Slides: {len(prs.slides)})")
+
 
 if __name__ == "__main__":
-    create_deck()
+    build_presentation()
